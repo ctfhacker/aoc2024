@@ -5,8 +5,10 @@ if [ -z ${SESSION+x} ]; then
   exit 1
 fi
 
+DAY="$1"
+
 # Create the repo is it doesn't already exist
-cargo init "day$1" || true
+cargo init "day${DAY}" || true
 
 # Download the input for this day
-curl --cookie session="$SESSION" "https://adventofcode.com/2024/day/$1/input" > "day$1/input"
+curl --cookie session="${SESSION}" "https://adventofcode.com/2024/day/${DAY}/input" > "day${DAY}/input"
