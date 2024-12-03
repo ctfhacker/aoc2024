@@ -154,34 +154,27 @@ impl Program {
 }
 
 fn tokenize(input: &[u8]) -> Tokens {
-    let mut i = 0;
+    let mut i: u32 = 0;
     let mut tokens = Tokens::default();
-    while (i as usize) < input.len() {
+    'next_token: while (i as usize) < input.len() {
+        // Begin with checking for static tokens
+        for (static_tokens, typ) in [
+            ("do()", TokenType::Enable),
+            ("don't()", TokenType::Disable),
+            ("mul", TokenType::Mul),
+            ("(", TokenType::OpenParen),
+            (")", TokenType::CloseParen),
+            (",", TokenType::Comma),
+        ] {
+            if input[i as usize..].starts_with(static_tokens.as_bytes()) {
+                tokens.add(i, typ);
+                i += u32::try_from(static_tokens.len()).expect("Too many tokens");
+                continue 'next_token;
+            }
+        }
+
+        // If no static tokens are found, begin looking for other types of checks
         match &input[i as usize..] {
-            [b'd', b'o', b'(', b')', ..] => {
-                tokens.add(i, TokenType::Enable);
-                i += 4;
-            }
-            [b'd', b'o', b'n', b'\'', b't', b'(', b')', ..] => {
-                tokens.add(i, TokenType::Disable);
-                i += 7;
-            }
-            [b'm', b'u', b'l', ..] => {
-                tokens.add(i, TokenType::Mul);
-                i += 3;
-            }
-            [b'(', ..] => {
-                tokens.add(i, TokenType::OpenParen);
-                i += 1;
-            }
-            [b')', ..] => {
-                tokens.add(i, TokenType::CloseParen);
-                i += 1;
-            }
-            [b',', ..] => {
-                tokens.add(i, TokenType::Comma);
-                i += 1;
-            }
             [x, end, ..] if x.is_ascii_digit() && !end.is_ascii_digit() => {
                 tokens.add(i, TokenType::Number);
                 i += 1;
